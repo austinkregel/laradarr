@@ -39,9 +39,7 @@ class TraktTvService
             'trakt-api-version' => '2',
             'trakt-api-key' => config('services.trakt.client_id')
         ])
-            ->get('https://api.trakt.tv/sync/watched/shows')
-            ->json();
-
+            ->get('https://api.trakt.tv/sync/watched/shows');
 
         return array_map(function($showFromTrakt) {
             return [
@@ -67,6 +65,6 @@ class TraktTvService
                     }, $carry);
                 }, []),
             ];
-        }, $response);
+        }, $response->json());
     }
 }

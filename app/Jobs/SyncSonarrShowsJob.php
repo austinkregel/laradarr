@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Episode;
 use App\Models\Show;
+use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
@@ -32,38 +33,7 @@ class SyncSonarrShowsJob implements ShouldQueue
             ->json();
 
         foreach ($series as $show) {
-            $poster = array_values(array_filter($show['images'], function ($image) {
-                return $image['coverType'] === 'poster';
-            }))[0] ?? ['url' => null];
-
-            $banner = array_values(array_filter($show['images'], function ($image) {
-                return $image['coverType'] === 'banner';
-            }))[0] ?? ['url' => null];
-
-            $logo = array_values(array_filter($show['images'], function ($image) {
-                return $image['coverType'] === 'clearlogo';
-            }))[0] ?? ['url' => null];
-
-
-            $attributes = [
-                'sonarr_id' => $show['id'],
-                'name' => $show['title'],
-                'aliases' => array_map(fn ($i) => $i['title'], $show['alternateTitles']),
-                'slug' => $show['titleSlug'],
-                'description' => $show['overview']??null,
-                'release_year' => $show['year'],
-                'seasons' => isset($show['statistics']) ? $show['statistics']['seasonCount'] : 1,
-                'episodes' => isset($show['statistics']) ? $show['statistics']['episodeCount'] : 12,
-                'type' => $show['seriesType'],
-                'path' => $show['path'],
-                'poster_image' => $poster['url'] ? config('services.sonarr.url').$poster['url'] : null,
-                'banner_image' => $banner['url'] ? config('services.sonarr.url').$banner['url'] : null,
-                'logo_image' => $logo['url'] ? config('services.sonarr.url').$logo['url'] : null,
-                'size_on_disk' => isset($show['statistics']) ? $show['statistics']['sizeOnDisk'] : 0,
-                'imdb_id' => $show['imdbId'] ?? null,
-                'tvdb_id' => $show['tvdbId'] ?? null,
-                'tmdb_id' => $show['tmdbId'] ?? null,
-            ];
+            $attributes = $this->convertShow($show);
 
             $localShow = $this->findShow($show);
 
@@ -93,6 +63,16 @@ class SyncSonarrShowsJob implements ShouldQueue
                     continue;
                 }
 
+                if (($episode['overview'] ?? '') === 'TBA') {
+                    // Don't sync episodes that are TBA
+                    continue;
+                }
+
+                if (($episode['seasonNumber'] ?? 1) === 0) {
+                    // Don't sync episodes that are season 0
+                    continue;
+                }
+
                 if (empty($episode['seasonNumber'])) {
                     $episode['seasonNumber'] = 1;
                 }
@@ -100,7 +80,6 @@ class SyncSonarrShowsJob implements ShouldQueue
                 $localSeason = $localShow->seasons()->firstOrCreate(['season' => $episode['seasonNumber']], [
                     'name' => 'Season '.$episode['seasonNumber'],
                 ]);
-
 
                 /** @var Episode $localEpisode */
                 $localEpisode = $localShow->episodes()->firstWhere('sonarr_episode_id', $episode['id']);
@@ -215,6 +194,42 @@ class SyncSonarrShowsJob implements ShouldQueue
             }
         }
 
-        dd($show);
+        return Show::create($this->convertShow($show));
+    }
+
+    protected function convertShow(mixed $show)
+    {
+        $poster = array_values(array_filter($show['images'], function ($image) {
+            return $image['coverType'] === 'poster';
+        }))[0] ?? ['url' => null];
+
+        $banner = array_values(array_filter($show['images'], function ($image) {
+            return $image['coverType'] === 'banner';
+        }))[0] ?? ['url' => null];
+
+        $logo = array_values(array_filter($show['images'], function ($image) {
+            return $image['coverType'] === 'clearlogo';
+        }))[0] ?? ['url' => null];
+
+        return [
+            'sonarr_id' => $show['id'],
+            'name' => $show['title'],
+            'aliases' => array_map(fn ($i) => $i['title'], $show['alternateTitles']),
+            'slug' => $show['titleSlug'],
+            'description' => $show['overview']??null,
+            'release_year' => $show['year'],
+            'type' => $show['seriesType'],
+            'path' => $show['path'],
+            'poster_image' => $poster['url'] ? config('services.sonarr.url').$poster['url'] : null,
+            'banner_image' => $banner['url'] ? config('services.sonarr.url').$banner['url'] : null,
+            'logo_image' => $logo['url'] ? config('services.sonarr.url').$logo['url'] : null,
+            'size_on_disk' => isset($show['statistics']) ? $show['statistics']['sizeOnDisk'] : 0,
+            'imdb_id' => $show['imdbId'] ?? null,
+            'tvdb_id' => $show['tvdbId'] ?? null,
+            'tmdb_id' => $show['tmdbId'] ?? null,
+            'released_at' => isset($show['firstAired']) ? Carbon::parse($show['firstAired']): null,
+            'season_count' => count(array_filter($show['seasons'], fn ($i) => ($i['statistics']['episodeCount'] ?? 0) > 0)),
+            'episode_count' => array_sum(array_map(fn ($i) => $i['statistics']['episodeCount'] ?? 0, $show['seasons'] ?? [])),
+        ];
     }
 }

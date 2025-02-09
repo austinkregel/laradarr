@@ -68,7 +68,6 @@ class SyncTraktTvShowsAndProgressJob implements ShouldQueue
 
         foreach ($series as $show) {
             $localShow = $this->findShow($show);
-
             $attributes = [
                 'name' => $show['name'],
                 'trakt_id' => $show['ids']['trakt'],
@@ -81,6 +80,10 @@ class SyncTraktTvShowsAndProgressJob implements ShouldQueue
             if (empty($localShow)) {
                 continue;
             }
+
+            $localShow->last_watched_at = max(
+                array_map(fn ($episode) => Carbon::parse($episode['watched_at'], 'UTC'), $show['episodes'])
+            );
 
             foreach ($attributes as $attribute => $value) {
                 if ($localShow->{$attribute} === $value) {

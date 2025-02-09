@@ -32,6 +32,8 @@ class Show extends Model
         'imdb_id',
         'tvdb_id',
         'trakt_id',
+        'has_complete_series',
+        'plex_id',
     ];
 
     protected $casts = [
@@ -48,6 +50,11 @@ class Show extends Model
         return $this->hasManyThrough(Episode::class, Season::class);
     }
 
+    public function watchers()
+    {
+        return $this->hasManyThrough(WatchedEpisode::class, Season::class);
+    }
+
     #[SearchUsingPrefix(['id', 'email'])]
     #[SearchUsingFullText(['bio'])]
     public function toSearchableArray(): array
@@ -57,5 +64,35 @@ class Show extends Model
             'name' => $this->name,
             'aliases' => $this->aliases,
         ];
+    }
+
+    public function scopeComplete($query)
+    {
+        return $query->where('has_complete_series', true);
+    }
+
+    public function scopeEnglishOnly($query)
+    {
+        return $query->whereHas(
+            'episodes.media',
+            fn ($query) => $query->whereJsonContains('custom_properties->languages', 'English')
+        );
+    }
+
+    public function scopeUnwatchedOnly($query)
+    {
+        return $query->whereDoesntHave(
+            'watchers',
+            fn ($query) => $query->where('user_id', auth()->id())
+        )
+            ->where('has_complete_series', false);
+    }
+
+    public function scopeWithWatchedProgress($query)
+    {
+        return $query->whereHas(
+            'watchers',
+            fn ($query) => $query->where('user_id', auth()->id())
+        );
     }
 }

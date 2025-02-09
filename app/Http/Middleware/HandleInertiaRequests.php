@@ -35,6 +35,9 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        if (auth()->check()) {
+            $request->user()->load('favorites');
+        }
         return array_merge(parent::share($request), [
             //
         ]);

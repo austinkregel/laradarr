@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('shows', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('sonarr_id')->unsigned();
+            $table->unsignedBigInteger('sonarr_id')->nullable();
 
             $table->string('name');
             $table->json('aliases')->nullable();

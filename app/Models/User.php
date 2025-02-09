@@ -9,10 +9,12 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use Overtrue\LaravelFavorite\Traits\Favoriter;
 
 class User extends Authenticatable
 {
     use HasApiTokens;
+    use Favoriter;
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
@@ -63,5 +65,12 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function watchedEpisodes()
+    {
+        return $this->belongsToMany(Episode::class, 'watched_episodes')
+            ->withPivot(['watched_at', 'season_id'])
+            ->withTimestamps();
     }
 }

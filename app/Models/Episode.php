@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Overtrue\LaravelFavorite\Traits\Favoriteable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Episode extends Model implements HasMedia
 {
-    use InteractsWithMedia;
+    use InteractsWithMedia, Favoriteable;
     protected $fillable = [
         'name',
         'description',
@@ -34,14 +35,24 @@ class Episode extends Model implements HasMedia
 
     public function show()
     {
-        return $this->belongsTo(Show::class);
+        return $this->belongsToMany(
+            Show::class,
+            'seasons',
+            'id',
+            'show_id',
+            'season_id',
+        );
     }
 
     public function watchers()
     {
         return $this->belongsToMany(User::class, 'watched_episodes')
-
             ->withPivot('watched_at')
             ->withTimestamps();
+    }
+
+    public function watchedBy(User $user)
+    {
+        return $this->watchers()->where('user_id', $user->id);
     }
 }

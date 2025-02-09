@@ -58,4 +58,12 @@ return [
         'url' => env('PLEX_URL'),
         'token' => env('PLEX_TOKEN'),
     ],
+
+
+    'laravelpassport' => [
+        'client_id' => env('LARAVEL_PASSPORT_CLIENT_ID'),
+        'client_secret' => env('LARAVEL_PASSPORT_CLIENT_SECRET'),
+        'redirect' => env('LARAVEL_PASSPORT_REDIRECT'),
+        'host' => env('LARAVEL_PASSPORT_HOST')
+    ],
 ];
