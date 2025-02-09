@@ -1,0 +1,6 @@
+#############################################################################
+#
+# This is just a basic cron, it will never be more advnaced than this.
+#
+#############################################################################
+* * * * * php /var/www/html/artisan schedule:run >> /var/www/html/storage/logs/crontab.log 2>&1

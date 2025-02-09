@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "90468460993a9ac2888801727a9415e7",
+    "content-hash": "12c1540002c41f8f0d6e5e9bc5328e11",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1631,6 +1631,72 @@
                 "source": "https://github.com/schmittjoh/metadata/tree/2.8.0"
             },
             "time": "2023-02-15T13:44:18+00:00"
+        },
+        {
+            "name": "kregel/laravel-flight",
+            "version": "1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/austinkregel/laravel-flight.git",
+                "reference": "2faa4a4a5897ac49035c18b46e351e67c52000a7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/austinkregel/laravel-flight/zipball/2faa4a4a5897ac49035c18b46e351e67c52000a7",
+                "reference": "2faa4a4a5897ac49035c18b46e351e67c52000a7",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/socialite": "^5.6",
+                "php": ">=8.0",
+                "socialiteproviders/laravelpassport": "^4.0",
+                "socialiteproviders/manager": "^4.0"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.6",
+                "orchestra/testbench": "^6.0",
+                "phpunit/phpunit": "^9.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Kregel\\Flight\\FlightServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Kregel\\Flight\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Austin Kregel",
+                    "email": "5355937+austinkregel@users.noreply.github.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Secure your apps easily with Laravel Socialite and OAuth. Install this package, configure a few env values, a config/services.php entry, and then login.",
+            "homepage": "https://github.com/kregel/laravel-flight",
+            "keywords": [
+                "Authentication",
+                "horizon",
+                "kregel",
+                "laravel",
+                "laravel-flight",
+                "oauth",
+                "socialite"
+            ],
+            "support": {
+                "issues": "https://github.com/austinkregel/laravel-flight/issues",
+                "source": "https://github.com/austinkregel/laravel-flight/tree/1.0.2"
+            },
+            "time": "2024-07-22T14:18:55+00:00"
         },
         {
             "name": "laravel/fortify",
@@ -3647,6 +3713,76 @@
             "time": "2024-11-21T10:39:51+00:00"
         },
         {
+            "name": "overtrue/laravel-favorite",
+            "version": "5.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/overtrue/laravel-favorite.git",
+                "reference": "a1cfcc9c0d101a80ea55f422cffb856c929504ed"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/overtrue/laravel-favorite/zipball/a1cfcc9c0d101a80ea55f422cffb856c929504ed",
+                "reference": "a1cfcc9c0d101a80ea55f422cffb856c929504ed",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "^9.0|^10.0|^11.0",
+                "php": "^8.0.2"
+            },
+            "require-dev": {
+                "brainmaestro/composer-git-hooks": "dev-master",
+                "friendsofphp/php-cs-fixer": "^3.5",
+                "laravel/pint": "^1.2",
+                "mockery/mockery": "^1.4.4",
+                "orchestra/testbench": "^8.0|^9.0",
+                "phpunit/phpunit": "^10.0.0"
+            },
+            "type": "library",
+            "extra": {
+                "hooks": {
+                    "pre-push": [
+                        "composer test"
+                    ],
+                    "pre-commit": [
+                        "composer fix-style"
+                    ]
+                },
+                "laravel": {
+                    "providers": [
+                        "Overtrue\\LaravelFavorite\\FavoriteServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Overtrue\\LaravelFavorite\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "overtrue",
+                    "email": "anzhengchao@gmail.com"
+                }
+            ],
+            "description": "User favorite features for Laravel Application.",
+            "support": {
+                "issues": "https://github.com/overtrue/laravel-favorite/issues",
+                "source": "https://github.com/overtrue/laravel-favorite/tree/5.2.1"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/overtrue",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-03-18T11:26:52+00:00"
+        },
+        {
             "name": "paragonie/constant_time_encoding",
             "version": "v3.0.0",
             "source": {
@@ -4875,6 +5011,56 @@
             "time": "2024-04-27T21:32:50+00:00"
         },
         {
+            "name": "socialiteproviders/laravelpassport",
+            "version": "4.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/SocialiteProviders/Laravel-Passport.git",
+                "reference": "5ee785624a0fc5ee4b18922e1295a63729074285"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/SocialiteProviders/Laravel-Passport/zipball/5ee785624a0fc5ee4b18922e1295a63729074285",
+                "reference": "5ee785624a0fc5ee4b18922e1295a63729074285",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": "^7.4 || ^8.0",
+                "socialiteproviders/manager": "~4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "SocialiteProviders\\LaravelPassport\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "recca0120",
+                    "email": "recca0120@name.com"
+                }
+            ],
+            "description": "LaravelPassport OAuth2 Provider for Laravel Socialite",
+            "keywords": [
+                "laravel",
+                "oauth",
+                "passport",
+                "provider",
+                "socialite"
+            ],
+            "support": {
+                "docs": "https://socialiteproviders.com/laravelpassport",
+                "issues": "https://github.com/socialiteproviders/providers/issues",
+                "source": "https://github.com/socialiteproviders/providers"
+            },
+            "time": "2022-08-10T23:31:11+00:00"
+        },
+        {
             "name": "socialiteproviders/manager",
             "version": "v4.7.0",
             "source": {
@@ -5361,17 +5547,91 @@
             "time": "2024-11-18T15:02:02+00:00"
         },
         {
-            "name": "spatie/laravel-tags",
-            "version": "4.7.0",
+            "name": "spatie/laravel-query-builder",
+            "version": "6.3.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/spatie/laravel-tags.git",
-                "reference": "dcbfd689eb76801dbe42d19b223cb24235567681"
+                "url": "https://github.com/spatie/laravel-query-builder.git",
+                "reference": "96746011866fc3c67953557c17b7d017bf5b3e07"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-tags/zipball/dcbfd689eb76801dbe42d19b223cb24235567681",
-                "reference": "dcbfd689eb76801dbe42d19b223cb24235567681",
+                "url": "https://api.github.com/repos/spatie/laravel-query-builder/zipball/96746011866fc3c67953557c17b7d017bf5b3e07",
+                "reference": "96746011866fc3c67953557c17b7d017bf5b3e07",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^10.0|^11.0",
+                "illuminate/http": "^10.0|^11.0",
+                "illuminate/support": "^10.0|^11.0",
+                "php": "^8.2",
+                "spatie/laravel-package-tools": "^1.11"
+            },
+            "require-dev": {
+                "ext-json": "*",
+                "larastan/larastan": "^2.9",
+                "mockery/mockery": "^1.4",
+                "orchestra/testbench": "^7.0|^8.0",
+                "pestphp/pest": "^2.0",
+                "phpunit/phpunit": "^10.0",
+                "spatie/invade": "^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Spatie\\QueryBuilder\\QueryBuilderServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\QueryBuilder\\": "src",
+                    "Spatie\\QueryBuilder\\Database\\Factories\\": "database/factories"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Alex Vanderbist",
+                    "email": "alex@spatie.be",
+                    "homepage": "https://spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Easily build Eloquent queries from API requests",
+            "homepage": "https://github.com/spatie/laravel-query-builder",
+            "keywords": [
+                "laravel-query-builder",
+                "spatie"
+            ],
+            "support": {
+                "issues": "https://github.com/spatie/laravel-query-builder/issues",
+                "source": "https://github.com/spatie/laravel-query-builder"
+            },
+            "funding": [
+                {
+                    "url": "https://spatie.be/open-source/support-us",
+                    "type": "custom"
+                }
+            ],
+            "time": "2024-12-23T22:16:11+00:00"
+        },
+        {
+            "name": "spatie/laravel-tags",
+            "version": "4.7.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/laravel-tags.git",
+                "reference": "e80170512a8697776b72112736f388e8a9475847"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/laravel-tags/zipball/e80170512a8697776b72112736f388e8a9475847",
+                "reference": "e80170512a8697776b72112736f388e8a9475847",
                 "shasum": ""
             },
             "require": {
@@ -5420,7 +5680,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-tags/issues",
-                "source": "https://github.com/spatie/laravel-tags/tree/4.7.0"
+                "source": "https://github.com/spatie/laravel-tags/tree/4.7.2"
             },
             "funding": [
                 {
@@ -5428,7 +5688,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-10-03T15:45:40+00:00"
+            "time": "2024-12-09T15:26:07+00:00"
         },
         {
             "name": "spatie/laravel-translatable",
