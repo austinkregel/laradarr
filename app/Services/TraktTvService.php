@@ -67,4 +67,78 @@ class TraktTvService
             ];
         }, $response->json());
     }
+
+    public function findShowsOnList(string $user, string $list): array
+    {
+        return cache()->remember("trakt-list-$user-$list", now()->addMinutes(30), function () use ($user, $list) {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . env('TRAKT_ACCESS_TOKEN'),
+                'Content-Type' => 'application/json',
+                'trakt-api-version' => '2',
+                'trakt-api-key' => config('services.trakt.client_id')
+            ])
+                ->get("https://api.trakt.tv/users/$user/lists/$list/items/shows");
+
+            return array_map(function ($showFromTrakt) {
+                return $showFromTrakt;
+            }, $response->json());
+        });
+    }
+    public function fetchUserLists(string $user): array
+    {
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . env('TRAKT_ACCESS_TOKEN'),
+            'Content-Type' => 'application/json',
+            'trakt-api-version' => '2',
+            'trakt-api-key' => config('services.trakt.client_id')
+        ])
+            ->get("https://api.trakt.tv/users/$user/lists");
+
+        return array_map(function($list) {
+            return [
+                'name' => $list['name'],
+                'description' => $list['description'],
+                'ids' => $list['ids'],
+            ];
+        }, $response->json());
+    }
+
+    public function createList(string $name, array $shows): array
+    {
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . env('TRAKT_ACCESS_TOKEN'),
+            'Content-Type' => 'application/json',
+            'trakt-api-version' => '2',
+            'trakt-api-key' => config('services.trakt.client_id')
+        ])
+            ->post("https://api.trakt.tv/users/me/lists", [
+                'name' => $name,
+                'description' => 'List created by the Laradarr app',
+                'privacy' => 'private',
+                'show_ids' => $shows,
+            ]);
+
+        return $response->json();
+    }
+
+    public function addShowsToList(string $user, string $list, array $showIds): array
+    {
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . env('TRAKT_ACCESS_TOKEN'),
+            'Content-Type' => 'application/json',
+            'trakt-api-version' => '2',
+            'trakt-api-key' => config('services.trakt.client_id')
+        ])
+            ->post("https://api.trakt.tv/users/$user/lists/$list/items", [
+                'shows' => array_map(function ($showId) {
+                    return [
+                        'ids' => [
+                            'trakt' => $showId,
+                        ],
+                    ];
+                }, $showIds),
+            ]);
+
+        return $response->json();
+    }
 }
