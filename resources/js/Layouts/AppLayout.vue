@@ -36,7 +36,7 @@ const logout = () => {
         <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
             <nav class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                 <!-- Primary Navigation Menu -->
-              <div class="px-4 sm:px-6 lg:px-8">
+              <div class="px-4 sm:px-6 lg:px-8 max-w-[98rem] mx-auto">
                     <div class="flex justify-between h-16">
                         <div class="flex">
                             <!-- Logo -->
@@ -274,8 +274,8 @@ const logout = () => {
             </nav>
 
             <!-- Page Heading -->
-            <header v-if="$slots.header" class="bg-white dark:bg-gray-800 shadow">
-                <div class="py-6 px-4 sm:px-6 lg:px-8">
+            <header v-if="$slots.header" class="bg-white dark:bg-gray-800 shadow ">
+                <div class="py-6 px-4 sm:px-6 lg:px-8 max-w-[98rem] mx-auto">
                     <slot name="header" />
                 </div>
             </header>

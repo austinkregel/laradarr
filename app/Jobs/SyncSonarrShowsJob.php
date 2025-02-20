@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Episode;
 use App\Models\Show;
+use App\Services\SonarrService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -26,11 +27,9 @@ class SyncSonarrShowsJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(): void
+    public function handle(SonarrService $sonarrService): void
     {
-        $series = Http::withHeaders([])
-            ->get(config('services.sonarr.url').'/api/v3/series?apikey='.config('services.sonarr.api_key'))
-            ->json();
+        $series = $sonarrService->getShows();
 
         foreach ($series as $show) {
             $attributes = $this->convertShow($show);
@@ -52,10 +51,7 @@ class SyncSonarrShowsJob implements ShouldQueue
             }
 
             // Now we want to sync the episodes
-            $episodes = Http::withHeaders([])
-                ->get(config('services.sonarr.url').'/api/v3/episode?seriesId='.$show['id'].'&apikey='.config('services.sonarr.api_key'))
-                ->json();
-
+            $episodes = $sonarrService->getEpisodes($show['id']);
 
             foreach ($episodes as $episode) {
                 if ($episode['title'] === 'TBA') {
@@ -117,14 +113,12 @@ class SyncSonarrShowsJob implements ShouldQueue
                 }
 
                 if (!$episode['hasFile']) {
-                    // Don't sync episodes that don't have a file
+                    // Can't sync episodes media files that don't exist
                     continue;
                 }
 
                 // Now we want to sync the episodes
-                $mediaFile = Http::withHeaders([])
-                    ->get(config('services.sonarr.url').'/api/v3/episodefile/'.$episode['episodeFileId'].'?seriesId='.$show['id'].'&apikey='.config('services.sonarr.api_key'))
-                    ->json();
+                $mediaFile = $sonarrService->getEpisodeFile($episode['episodeFileId'], $show['id']);
 
                 if (!isset($mediaFile['path'])) {
                     dd($mediaFile, $episode);
@@ -171,7 +165,6 @@ class SyncSonarrShowsJob implements ShouldQueue
                         "generated_conversions" => [],
                         "responsive_images" => [],
                     ]);
-
             }
         }
     }

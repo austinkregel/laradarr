@@ -28,7 +28,7 @@ const episodesWatched = computed(() => season.episodes.filter(episode => episode
       <ChevronRightIcon :class="open && 'rotate-90 transform'" class="fill-current w-6 h-6" />
     </div>
   </DisclosureButton>
-  <DisclosurePanel as="div" class="grid grid-cols-4 gap-4">
+  <DisclosurePanel as="div" class="grid grid-cols-3 gap-4">
     <Episode v-for="episode in season.episodes" :key="episode.id" :episode="episode" :show_id="season.show_id"></Episode>
   </DisclosurePanel>
 </Disclosure>

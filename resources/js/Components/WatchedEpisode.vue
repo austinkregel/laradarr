@@ -1,7 +1,8 @@
 <script setup>
 import {computed} from "vue";
-import LikeButton from "@/Components/LikeButton.vue";
 import dayjs from "dayjs";
+
+import { Link } from "@inertiajs/vue3";
 
 const { episode } = defineProps({
   'episode': {
@@ -22,7 +23,7 @@ const date = (pivot) => {
   <div class="relative bg-white dark:bg-gray-950 overflow-hidden shadow-xl sm:rounded-lg py-4 flex flex-col justify-between">
     <div class="flex flex-col">
       <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 leading-tight px-4">{{ episode.name }}</h3>
-      <p class="text-gray-500 dark:text-gray-400 px-4 py-2">{{ show?.name }}</p>
+      <Link :href="route('show', show?.id)" class="text-gray-500 dark:text-gray-400 px-4 py-2">{{ show?.name }}</Link>
 
     </div>
     <div class="flex flex-wrap">

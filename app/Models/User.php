@@ -73,4 +73,11 @@ class User extends Authenticatable
             ->withPivot(['watched_at', 'season_id'])
             ->withTimestamps();
     }
+
+    public function completedShows()
+    {
+        return $this->belongsToMany(Show::class, 'completed_shows')
+            ->withPivot('completed_at')
+            ->withTimestamps();
+    }
 }

@@ -95,9 +95,8 @@ class SyncTraktTvShowsAndProgressJob implements ShouldQueue
                 $localShow->save();
             }
 
-
+            $watchedEpisodeCount = 0;
             // Now we need to match the episodes from the show, with the localShow.
-
             foreach ($show['episodes'] as $episode) {
                 $localSeason = $localShow->seasons()
                     ->firstOrCreate(['season' => $episode['season']], [
@@ -111,6 +110,8 @@ class SyncTraktTvShowsAndProgressJob implements ShouldQueue
                 if (empty($localEpisode)) {
                     continue;
                 }
+
+                $watchedEpisodeCount++;
 
                 if ($this->user->watchedEpisodes()->where('episode_id', $localEpisode->id)->exists()) {
                     continue;
@@ -127,12 +128,15 @@ class SyncTraktTvShowsAndProgressJob implements ShouldQueue
                     );
             }
 
+            if ($watchedEpisodeCount === $localShow->episodes()->count()) {
+                if ($this->user->completedShows()->where('show_id', $localShow->id)->exists()) {
+                    continue;
+                }
 
-//            $this->user
-//                ->watchedEpisodes()
-//                ->create([
-//
-//                ]);
+                $this->user->completedShows()->attach($localShow->id, [
+                    'completed_at' => Carbon::now(),
+                ]);
+            }
         }
     }
 }

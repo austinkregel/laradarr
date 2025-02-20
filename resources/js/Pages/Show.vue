@@ -37,7 +37,7 @@ const languages = computed(() => {
             </h2>
         </template>
 
-        <div class="mx-8 py-12">
+        <div class="mx-8 py-12 max-w-[100rem] mx-auto">
             <div class="sm:px-6 lg:px-8">
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg grid grid-cols-4">
                   <div class="col-span-4">
@@ -60,7 +60,7 @@ const languages = computed(() => {
                           <FilmIcon class="w-6 h-6" />
                           Open on Trakt
                         </a>
-                        <a v-if="show.sonarr_id" class="rounded-lg py-2 px-4 text-gray-700 dark:text-gray-200 flex items-center gap-2" target="_blank" :href="'http://192.168.3.17:8989/series/'+show.sonarr_id">
+                        <a v-if="show.sonarr_id" class="rounded-lg py-2 px-4 text-gray-700 dark:text-gray-200 flex items-center gap-2" target="_blank" :href="'http://192.168.3.17:8989/series/'+show.slug">
                           <img src="http://192.168.3.17:8989/Content/Images/logo.svg" class="w-6 h-6" />
                           Open in Sonarr
                         </a>

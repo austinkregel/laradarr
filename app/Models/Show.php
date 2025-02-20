@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Attributes\SearchUsingFullText;
 use Laravel\Scout\Attributes\SearchUsingPrefix;
@@ -55,6 +56,11 @@ class Show extends Model
         return $this->hasManyThrough(WatchedEpisode::class, Season::class);
     }
 
+    public function completed()
+    {
+        return $this->hasManyThrough(User::class, CompletedShow::class, null, 'id', null, 'user_id');
+    }
+
     #[SearchUsingPrefix(['id', 'email'])]
     #[SearchUsingFullText(['bio'])]
     public function toSearchableArray(): array
@@ -66,7 +72,7 @@ class Show extends Model
         ];
     }
 
-    public function scopeComplete($query)
+    public function scopeCompleteCollection($query)
     {
         return $query->where('has_complete_series', true);
     }
@@ -84,15 +90,18 @@ class Show extends Model
         return $query->whereDoesntHave(
             'watchers',
             fn ($query) => $query->where('user_id', auth()->id())
-        )
-            ->where('has_complete_series', false);
+        );
     }
 
-    public function scopeWithWatchedProgress($query)
+    public function scopeWithWatchedProgress(Builder $query)
     {
         return $query->whereHas(
             'watchers',
             fn ($query) => $query->where('user_id', auth()->id())
-        );
+        )
+            ->whereDoesntHave(
+                'completed',
+                fn ($query) => $query->where('user_id', auth()->id())
+            );
     }
 }

@@ -27,16 +27,19 @@ Route::middleware([
                 'seasons',
                 'episodes',
                 'watchers' => fn ($query) => $query->where('user_id', auth()->id()),
+                'completed' => fn ($query) => $query->where('user_id', auth()->id()),
             ])
             ->whereNotNull('poster_image')
             ->allowedFilters([
-                \Spatie\QueryBuilder\AllowedFilter::scope('complete'),
+                \Spatie\QueryBuilder\AllowedFilter::scope('complete-collection'),
                 \Spatie\QueryBuilder\AllowedFilter::scope('english-only'),
                 \Spatie\QueryBuilder\AllowedFilter::scope('unwatched-only'),
                 \Spatie\QueryBuilder\AllowedFilter::scope('with-watched-progress'),
             ])
             ->orderByDesc('last_watched_at')
-            ->paginate(request('limit', 5000));
+            ->paginate(request('limit', 15))
+        ->appends(request()->query())
+        ;
 
         return Inertia::render('Dashboard', [
             'shows' => $shows,
@@ -47,6 +50,18 @@ Route::middleware([
                 ->get(),
         ]);
     })->name('dashboard');
+
+    Route::get('/watched-shows', function () {
+        return Inertia::render('WatchHistory', [
+            'shows' => auth()->user()->watchedEpisodes()
+                ->with([
+                    'show',
+                    'watchers',
+                ])
+                ->orderByDesc('watched_at')
+                ->paginate(30, ['*'], 'page', request('page', 1)),
+        ]);
+    });
 
     Route::post('/favorite', function (Request $request) {
         $type = $request->get('likeable_type');
