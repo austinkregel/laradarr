@@ -1,20 +1,52 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use App\Contracts\TraktTvServiceContract;
+use App\Exceptions\Integration\AuthenticationException;
+use App\Services\DTOs\Trakt\ShowDTO;
 
-class TraktTvService
+class TraktTvService extends BaseApiClient implements TraktTvServiceContract
 {
+    public function __construct(
+        private readonly \App\Contracts\TokenManagerContract $tokenManager,
+    ) {}
+
+    protected function serviceKey(): string
+    {
+        return 'trakt';
+    }
+
+    protected function baseUrlOverride(): ?string
+    {
+        return (string) config('services.trakt.base_url', 'https://api.trakt.tv');
+    }
+
+    protected function defaultHeaders(): array
+    {
+        return [
+            'Content-Type' => 'application/json',
+            'trakt-api-version' => '2',
+            'trakt-api-key' => (string) config('services.trakt.client_id'),
+        ];
+    }
+
+    private function authHeaders(): array
+    {
+        $token = $this->tokenManager->getTraktAccessToken();
+        return $token ? ['Authorization' => 'Bearer ' . $token] : [];
+    }
+
     /**
      * First create a device token. You'll use the returned device_code to exchange for an access token.
      * You'll need to click the provided link, and enter the generated code in the Trakt website.
      */
     public function createDeviceToken(): array
     {
-        return Http::post('https://api.trakt.tv/oauth/device/code', [
-            'client_id' => config('services.trakt.client_id'),
-        ])->json();
+        return $this->requestJson('POST', '/oauth/device/code', body: [
+            'client_id' => (string) config('services.trakt.client_id'),
+        ]);
     }
 
     /**
@@ -23,122 +55,88 @@ class TraktTvService
      */
     public function exchangeForAccessToken(string $code): array
     {
-        return Http::post('https://api.trakt.tv/oauth/device/token', [
+        $json = $this->requestJson('POST', '/oauth/device/token', body: [
             'code' => $code,
             'client_id' => config('services.trakt.client_id'),
             'client_secret' => config('services.trakt.client_secret'),
-        ])->json();
+        ]);
+
+        // Persist in cache for runtime use.
+        $this->tokenManager->storeTraktTokens($json);
+
+        return $json;
     }
 
-
-    public function findWatchedShows(): array
+    public function refreshAccessToken(): array
     {
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer '.env('TRAKT_ACCESS_TOKEN'),
-            'Content-Type' => 'application/json',
-            'trakt-api-version' => '2',
-            'trakt-api-key' => config('services.trakt.client_id')
-        ])
-            ->get('https://api.trakt.tv/sync/watched/shows');
+        return $this->tokenManager->refreshTraktTokens();
+    }
 
-        return array_map(function($showFromTrakt) {
-            return [
-                'id' => $showFromTrakt['show']['ids']['trakt'],
-                'ids' => $showFromTrakt['show']['ids'],
-                'name' => $showFromTrakt['show']['title'],
-                'release_year' => $showFromTrakt['show']['year'],
-                'episodes' => array_reduce($showFromTrakt['seasons'], function ($carry, $season) {
-                    return array_reduce($season['episodes'], function ($seasonCarry, $episode) use ($season) {
-                        $key = 'S'.
-                            str_pad($season['number'], 2, '0', STR_PAD_LEFT).
-                            'E'.
-                            str_pad($episode['number'], 2, '0', STR_PAD_LEFT);
-
-
-                        $seasonCarry[] = [
-                            'key' => $key,
-                            'season' => $season['number'],
-                            'number' => $episode['number'],
-                            'watched_at' => $episode['last_watched_at'],
-                        ];
-                        return $seasonCarry;
-                    }, $carry);
-                }, []),
-            ];
-        }, $response->json());
+    /** @return \Illuminate\Support\Collection<int, ShowDTO> */
+    public function findWatchedShows(): \Illuminate\Support\Collection
+    {
+        $json = $this->requestJsonAuthed('GET', '/sync/watched/shows');
+        return collect($json)
+            ->filter(fn ($row) => is_array($row) && isset($row['show']))
+            ->map(fn (array $row) => ShowDTO::fromWatchedArray($row))
+            ->values();
     }
 
     public function findShowsOnList(string $user, string $list): array
     {
         return cache()->remember("trakt-list-$user-$list", now()->addMinutes(30), function () use ($user, $list) {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . env('TRAKT_ACCESS_TOKEN'),
-                'Content-Type' => 'application/json',
-                'trakt-api-version' => '2',
-                'trakt-api-key' => config('services.trakt.client_id')
-            ])
-                ->get("https://api.trakt.tv/users/$user/lists/$list/items/shows");
-
-            return array_map(function ($showFromTrakt) {
-                return $showFromTrakt;
-            }, $response->json());
+            return $this->requestJsonAuthed('GET', "/users/{$user}/lists/{$list}/items/shows");
         });
     }
+
     public function fetchUserLists(string $user): array
     {
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . env('TRAKT_ACCESS_TOKEN'),
-            'Content-Type' => 'application/json',
-            'trakt-api-version' => '2',
-            'trakt-api-key' => config('services.trakt.client_id')
-        ])
-            ->get("https://api.trakt.tv/users/$user/lists");
+        $json = $this->requestJsonAuthed('GET', "/users/{$user}/lists");
 
-        return array_map(function($list) {
+        return array_map(function ($list) {
             return [
-                'name' => $list['name'],
-                'description' => $list['description'],
-                'ids' => $list['ids'],
+                'name' => $list['name'] ?? null,
+                'description' => $list['description'] ?? null,
+                'ids' => $list['ids'] ?? null,
             ];
-        }, $response->json());
+        }, $json);
     }
 
     public function createList(string $name, array $shows): array
     {
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . env('TRAKT_ACCESS_TOKEN'),
-            'Content-Type' => 'application/json',
-            'trakt-api-version' => '2',
-            'trakt-api-key' => config('services.trakt.client_id')
-        ])
-            ->post("https://api.trakt.tv/users/me/lists", [
-                'name' => $name,
-                'description' => 'List created by the Laradarr app',
-                'privacy' => 'private',
-                'show_ids' => $shows,
-            ]);
-
-        return $response->json();
+        return $this->requestJsonAuthed('POST', '/users/me/lists', body: [
+            'name' => $name,
+            'description' => 'List created by the Laradarr app',
+            'privacy' => 'private',
+            'show_ids' => $shows,
+        ]);
     }
 
     public function addShowsToList(string $user, string $list, array $showIds): array
     {
-        $response = Http::withHeaders([
-            'Authorization' => 'Bearer ' . env('TRAKT_ACCESS_TOKEN'),
-            'Content-Type' => 'application/json',
-            'trakt-api-version' => '2',
-            'trakt-api-key' => config('services.trakt.client_id')
-        ])
-            ->post("https://api.trakt.tv/users/$user/lists/$list/items", [
-                'shows' => array_map(function ($showId) {
-                    return [
-                        'ids' => [
-                            'trakt' => $showId,
-                        ],
-                    ];
-                }, $showIds),
-            ]);
+        return $this->requestJsonAuthed('POST', "/users/{$user}/lists/{$list}/items", body: [
+            'shows' => array_map(function ($showId) {
+                return [
+                    'ids' => [
+                        'trakt' => $showId,
+                    ],
+                ];
+            }, $showIds),
+        ]);
+    }
 
-        return $response->json();
+    private function requestJsonAuthed(
+        string $method,
+        string $path,
+        array $query = [],
+        array $body = [],
+    ): array {
+        try {
+            return $this->requestJson($method, $path, query: $query, body: $body, headers: $this->authHeaders());
+        } catch (AuthenticationException $e) {
+            // Refresh once and retry.
+            $this->tokenManager->refreshTraktTokens();
+            return $this->requestJson($method, $path, query: $query, body: $body, headers: $this->authHeaders());
+        }
     }
 }

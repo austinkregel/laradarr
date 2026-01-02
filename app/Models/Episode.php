@@ -55,4 +55,9 @@ class Episode extends Model implements HasMedia
     {
         return $this->watchers()->where('user_id', $user->id);
     }
+
+    public function searchRequests()
+    {
+        return $this->hasMany(EpisodeSearchRequest::class);
+    }
 }

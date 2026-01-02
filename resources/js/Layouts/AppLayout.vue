@@ -41,16 +41,89 @@ const logout = () => {
                         <div class="flex">
                             <!-- Logo -->
                             <div class="shrink-0 flex items-center">
-                                <Link :href="route('dashboard')">
+                                <Link :href="route('dashboard.shows')">
                                     <ApplicationMark class="block h-9 w-auto" />
                                 </Link>
                             </div>
 
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                                    Dashboard
+                                <Dropdown align="left" width="48" class="my-4">
+                                    <template #trigger>
+                                        <span class="inline-flex rounded-md">
+                                            <button
+                                                type="button"
+                                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-700 active:bg-gray-50 dark:active:bg-gray-700 transition ease-in-out duration-150"
+                                                :class="{ 'text-gray-700 dark:text-gray-300': route().current('dashboard.shows') || route().current('dashboard.movies') }"
+                                            >
+                                                Dashboards
+                                                <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    </template>
+                                    <template #content>
+                                        <DropdownLink :href="route('dashboard.shows')">Shows Dashboard</DropdownLink>
+                                        <DropdownLink :href="route('dashboard.movies')">Movies Dashboard</DropdownLink>
+                                    </template>
+                                </Dropdown>
+
+                                <NavLink :href="route('manual-imports.index')" :active="route().current('manual-imports.index')" class="relative">
+                                    Manual Imports
+                                    <span
+                                        v-if="$page.props.unresolvedManualImportsCount > 0"
+                                        class="absolute -top-3 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full"
+                                    >
+                                        {{ $page.props.unresolvedManualImportsCount }}
+                                    </span>
                                 </NavLink>
+
+                                <Dropdown align="left" width="48" class="my-4">
+                                    <template #trigger>
+                                        <span class="inline-flex rounded-md">
+                                            <button
+                                                type="button"
+                                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-700 active:bg-gray-50 dark:active:bg-gray-700 transition ease-in-out duration-150"
+                                                :class="{ 'text-gray-700 dark:text-gray-300': route().current('recommendations.shows') || route().current('recommendations.movies') }"
+                                            >
+                                                Recommendations
+                                                <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    </template>
+                                    <template #content>
+                                        <DropdownLink :href="route('recommendations.shows')">Shows Recommendations</DropdownLink>
+                                        <DropdownLink :href="route('recommendations.movies')">Movies Recommendations</DropdownLink>
+                                    </template>
+                                </Dropdown>
+
+                                <NavLink :href="route('watched-shows.index')" :active="route().current('watched-shows.index')" class="relative">
+                                    Watch History
+                                </NavLink>
+
+                                <Dropdown align="left" width="48" class="my-4">
+                                    <template #trigger>
+                                        <span class="inline-flex rounded-md">
+                                            <button
+                                                type="button"
+                                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-700 active:bg-gray-50 dark:active:bg-gray-700 transition ease-in-out duration-150"
+                                                :class="{ 'text-gray-700 dark:text-gray-300': route().current('discover') || route().current('movies.index') }"
+                                            >
+                                                Discover
+                                                <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    </template>
+                                    <template #content>
+                                        <DropdownLink :href="route('discover')">Discover Shows</DropdownLink>
+                                        <DropdownLink :href="route('movies.index')">Discover Movies</DropdownLink>
+                                    </template>
+                                </Dropdown>
                             </div>
                         </div>
 
@@ -146,6 +219,10 @@ const logout = () => {
                                             API Tokens
                                         </DropdownLink>
 
+                                        <DropdownLink :href="route('credentials.index')">
+                                            Credentials
+                                        </DropdownLink>
+
                                         <div class="border-t border-gray-200 dark:border-gray-600" />
 
                                         <!-- Authentication -->
@@ -191,8 +268,52 @@ const logout = () => {
                 <!-- Responsive Navigation Menu -->
                 <div :class="{'block': showingNavigationDropdown, 'hidden': ! showingNavigationDropdown}" class="sm:hidden">
                     <div class="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                            Dashboard
+                        <div class="px-4 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                            Dashboards
+                        </div>
+                        <ResponsiveNavLink :href="route('dashboard.shows')" :active="route().current('dashboard.shows')">
+                            Shows Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('dashboard.movies')" :active="route().current('dashboard.movies')">
+                            Movies Dashboard
+                        </ResponsiveNavLink>
+
+                        <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+
+                        <ResponsiveNavLink :href="route('manual-imports.index')" :active="route().current('manual-imports.index')" class="relative">
+                            Manual Imports
+                            <span
+                                v-if="$page.props.unresolvedManualImportsCount > 0"
+                                class="ms-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full"
+                            >
+                                {{ $page.props.unresolvedManualImportsCount }}
+                            </span>
+                        </ResponsiveNavLink>
+
+                        <div class="px-4 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                            Recommendations
+                        </div>
+                        <ResponsiveNavLink :href="route('recommendations.shows')" :active="route().current('recommendations.shows')">
+                            Shows Recommendations
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('recommendations.movies')" :active="route().current('recommendations.movies')">
+                            Movies Recommendations
+                        </ResponsiveNavLink>
+
+                        <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+
+                        <ResponsiveNavLink :href="route('watched-shows.index')" :active="route().current('watched-shows.index')" class="relative">
+                            Watch History
+                        </ResponsiveNavLink>
+
+                        <div class="px-4 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                            Discover
+                        </div>
+                        <ResponsiveNavLink :href="route('discover')" :active="route().current('discover')" class="relative">
+                            Discover Shows
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('movies.index')" :active="route().current('movies.index')" class="relative">
+                            Discover Movies
                         </ResponsiveNavLink>
                     </div>
 
@@ -220,6 +341,10 @@ const logout = () => {
 
                             <ResponsiveNavLink v-if="$page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')" :active="route().current('api-tokens.index')">
                                 API Tokens
+                            </ResponsiveNavLink>
+
+                            <ResponsiveNavLink :href="route('credentials.index')" :active="route().current('credentials.index')">
+                                Credentials
                             </ResponsiveNavLink>
 
                             <!-- Authentication -->

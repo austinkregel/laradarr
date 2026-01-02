@@ -35,12 +35,7 @@ return [
             'root' => storage_path('app/private'),
             'serve' => true,
             'throw' => false,
-        ],
-        'shows' => [
-            'driver' => 'local',
-            'root' => '/data',
-            'serve' => true,
-            'throw' => false,
+            'report' => false,
         ],
 
         'public' => [
@@ -49,6 +44,7 @@ return [
             'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
             'throw' => false,
+            'report' => false,
         ],
 
         's3' => [
@@ -61,14 +57,21 @@ return [
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
             'throw' => false,
+            'report' => false,
         ],
-
-        'ftp' => [
+        'library' => [
             'driver' => 'ftp',
-            'host' => env('FTP_HOST'),
-            'username' => env('FTP_USERNAME'),
-            'password' => env('FTP_PASSWORD'),
-            'root' => env('FTP_ROOT_DIRECTORY'),
+            'host' => env('LIBRARY_SFTP_HOST'),
+            'username' => env('LIBRARY_SFTP_USERNAME'),
+            'password' => env('LIBRARY_SFTP_PASSWORD'),
+             'root' => env('SFTP_ROOT', '/'),
+        ],
+        'vault' => [
+            'driver' => 'ftp',
+            'host' => env('VAULT_SFTP_HOST'),
+            'username' => env('VAULT_SFTP_USERNAME'),
+            'password' => env('VAULT_SFTP_PASSWORD'),
+            'root' => env('SFTP_ROOT', '/'),
         ],
     ],
 

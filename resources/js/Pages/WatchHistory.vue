@@ -1,23 +1,8 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import Welcome from '@/Components/Welcome.vue';
 import { Link } from "@inertiajs/vue3";
-import dayjs from "dayjs";
-import relativeTime from 'dayjs/plugin/relativeTime';
-import utc from 'dayjs/plugin/utc';
-import {Battery0Icon, Battery100Icon, Battery50Icon, FunnelIcon, LanguageIcon} from "@heroicons/vue/24/solid";
-import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
-import { Listbox, ListboxButton, ListboxLabel, ListboxOption, ListboxOptions } from '@headlessui/vue'
-import { ChevronUpDownIcon, CheckCircleIcon, ChevronDownIcon } from '@heroicons/vue/16/solid'
-import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue'
-import {CheckBadgeIcon, CheckIcon} from '@heroicons/vue/20/solid'
-import {computed, ref} from "vue";
-import { buildUrl} from '@kbco/query-builder'
-import Episode from "@/Components/Episode.vue";
 import WatchedEpisode from "@/Components/WatchedEpisode.vue";
 
-dayjs.extend(relativeTime)
-dayjs.extend(utc);
 const { shows } = defineProps({
   'shows': {
     type: Object,
@@ -41,22 +26,31 @@ const { shows } = defineProps({
                   <h3 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 leading-tight px-4">Watched</h3>
                 </div>
 
-                <div class="grid grid-cols-5 gap-4" v-if="shows.data.length > 0">
-                  <div v-for="show in shows.data">
+                <div v-if="shows.data.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                  <div v-for="show in shows.data" :key="show.id ?? show.episode_id ?? show.pivot?.id ?? JSON.stringify(show)">
                     <WatchedEpisode :episode="show" />
                   </div>
                 </div>
 
-                <div class="mt-8 flex items-center justify-center">
-                  <div v-for="link in shows.links" :key="link">
+                <div v-else class="text-center py-12">
+                  <div class="text-gray-400 dark:text-gray-500">
+                    <svg class="mx-auto h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <p class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No watch history yet</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Start watching episodes to see them here</p>
+                  </div>
+                </div>
+
+                <div v-if="shows.data.length > 0" class="mt-8 flex items-center justify-center">
+                  <div v-for="link in shows.links" :key="link.url ?? link.label">
                     <Link
                       :href="link.url"
                       class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 leading-5 rounded-md focus:outline-none focus:shadow-outline-blue active:bg-gray-100 dark:active:bg-gray-700 transition ease-in-out duration-150"
                       :class="{ 'bg-gray-100 dark:bg-gray-700': link.active }"
-                      v-html="link.label"
                     >
+                      <span v-html="link.label"></span>
                     </Link>
-
                   </div>
                 </div>
             </div>
