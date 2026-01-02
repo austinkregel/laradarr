@@ -1,0 +1,61 @@
+# Darr Project Rules
+
+## Stack Overview
+- **Backend**: Laravel 11 / PHP 8.2+, Sanctum, Jetstream, Horizon. Leverage Inertia for server-driven Vue pages, and keep app logic inside controllers, services, and jobs.
+- **Frontend**: Vue 3 with Composition API, Inertia.js, Tailwind CSS + HeadlessUI, Day.js, and Ziggy for route helpers.
+- **Testing**: PHPUnit (Feature + Unit suites) with `RefreshDatabase`, HTTP fakes, and `actingAs()` to cover both auth-protected and public endpoints.
+
+## PHP / Laravel Conventions
+- `declare(strict_types=1)` on every PHP file. Favor explicit types in signatures and DTOs.
+- Controllers inject domain services via the constructor and delegate validation/response work there. Keep actions lean.
+- All HTTP integrations extend `App\Services\BaseApiClient`. Use `defaultHeaders()`, `defaultQuery()`, and `requestJson()` rather than raw `Http::` calls across the codebase.
+- DTO classes live under `App\Services\DTOs\` and expose static `fromArray()` helpers; keep them `readonly` if they only represent data.
+- **Service Contracts**: All services must have corresponding contract interfaces in `App\Contracts\`. Services implement their contracts (e.g., `SonarrService implements SonarrServiceContract`). Contracts are registered in `AppServiceProvider::register()` using singleton bindings. Always type-hint contracts (not concrete classes) in constructors, method parameters, and `app()` calls. This improves testability and allows for easier service swapping.
+- Service helpers are organized under `app/Services`. Each should document expected query/body payloads and reuse shared helper methods (for example, `SonarrService::pushRelease()` reuses `ensureMagnetOrDownload()`).
+- Models encapsulate behavior with Eloquent scopes, casts, and relationships. Prefer `with()` / `withCount()` over manual joins, keep pivot data minimal, and use helper accessors (e.g., `Show::getAvailableDubLanguagesAttribute`).
+- Jobs implement `ShouldQueue` when they trigger cross-service syncs and provide `tags()`/`displayName()` so Horizon metrics remain informative.
+- **CRITICAL: When creating a new queue** (via `onQueue()` or `->queue()` in a Job), you MUST:
+  1. Add the queue to a supervisor in `config/horizon.php` under the `defaults` section
+  2. Add the queue to the appropriate environment section (`local`, `production`, etc.)
+  3. Update the comment in `config/horizon.php` that lists all queues in use
+  4. Configure appropriate timeout, memory, and process limits for the queue
+- Exceptions live under `App\Exceptions\Integration`. Surface translation-friendly messages for frontend APIs (`response()->json([...], 422)`).
+- Keep configs in `config/services.php` for integrations, and guard secrets via environment variables.
+
+## Frontend / Inertia / Vue
+- Use `<script setup>` for components and prefer `defineProps`/`defineEmits`. Keep logic scoped and reuse shared helpers (e.g., `tagLabel` in `Episode.vue`).
+- Compose Inertia pages via `resources/js/Pages/` and shared UI under `resources/js/Components/`. Tailwind styling should be consistent (dark/light via utility classes, responsive layout using `grid`/`flex`).
+- Use `Link` from `@inertiajs/vue3` for navigation and `axios` (from `resources/js/bootstrap.js`) for API calls. Always guard frontend actions with guards for `episode.sonarr_episode_id` or other prerequisites.
+- Keep `resources/js/app.js` as the bootstrap entry point and let Vite manage dev/prod bundling. Tailwind config must list every source dir (`resources/js/**/*.vue`, Blade templates, etc.).
+- Prefer showing immediate user feedback (loading states, success/error messages) and reuse components like `DialogModal`, `PrimaryButton`, and `InputLabel`.
+
+## Testing Guidelines
+- Feature tests use `RefreshDatabase` and HTTP mocking via `Http::fake` to keep remote calls deterministic.
+- Auth-dependent routes should assert redirects when unauthenticated and use `actingAs($user, 'sanctum')` for guarded APIs.
+- Validate request payloads (`$request->validate([...])`) so tests can rely on consistent responses; surface descriptive messages for missing data (e.g., `'Either magnetUrl or downloadUrl must be provided'`).
+- When asserting HTTP requests, rely on helper methods such as `assertJsonPayload()` to ensure `protocol`, `magnetUrl`, and other required keys are sent.
+
+## File Layout & Naming
+- Follow PSR-12 for PHP, keeping namespaces aligned with folders. Files under `app/Models`, `app/Controllers`, `app/Jobs`, `app/Services`, etc.
+- Vue/JS files live under `resources/js/`. Use PascalCase for components/pages and kebab-case for CSS classes.
+- Tests mirror their targets under `tests/Feature` and `tests/Unit`. Name them after the controller/feature they cover.
+
+## Code Organization Notes
+- Prefer service methods returning `Collection` or primitive arrays instead of raw JSON strings.
+- Cache frequently fetched data (e.g., `SonarrService::getShow()` caches per show for an hour).
+- Keep synchronous operations separated from queued work; `SyncSonarrShowJob` handles long-running syncing while controllers only trigger jobs or call small helpers.
+- Document non-obvious decisions directly in code comments (short note sentences) rather than lengthy explanations.
+
+## Tooling & Scripts
+- **ALWAYS use Laravel Sail** for all interactions with PHP, PHPUnit, MySQL, npm, and composer commands.
+  - Use `./vendor/bin/sail` or `sail` (if aliased) for: `php`, `phpunit`, `composer`, `npm`, `mysql`, `artisan`, etc.
+  - Examples: `./vendor/bin/sail composer require package`, `./vendor/bin/sail artisan migrate`, `./vendor/bin/sail npm install`
+- Use `composer run` scripts defined in `composer.json` (`dev` runs `php artisan serve`, `pail`, queue listener, and `npm run dev` via `concurrently`).
+- Frontend builds go through Vite (`npm run dev` / `npm run build`).
+- For PHP linting/formatting, prefer `php artisan pint` when introduced (plan for future addition if not available yet).
+
+## Sonarr & Integrations
+- All Sonarr UI flows route through `/sonarr/*` endpoints and rely on `SonarrService` for API calls. Keep route definitions in `routes/web.php` and tests in `tests/Feature/Http/Controllers/SonarrControllerTest.php`.
+- API payloads must include either `magnetUrl` or `downloadUrl`. Validate this before calling `SonarrService::pushRelease()`.
+- When syncing episodes or triggering searches, always guard for `sonarr_id` existence before hitting external endpoints.
+

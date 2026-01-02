@@ -23,6 +23,8 @@
         "@headlessui/vue": "^1.7.23",
         "@heroicons/vue": "^2.2.0",
         "@kbco/query-builder": "^0.0.4",
-        "dayjs": "^1.11.13"
+        "dayjs": "^1.11.13",
+        "laravel-echo": "^1.19.0",
+        "pusher-js": "^8.4.0-rc2"
     }
 }

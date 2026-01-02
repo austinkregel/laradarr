@@ -80,4 +80,18 @@ class User extends Authenticatable
             ->withPivot('completed_at')
             ->withTimestamps();
     }
+
+    public function watchedMovies()
+    {
+        return $this->belongsToMany(Movie::class, 'watched_movies')
+            ->withPivot('watched_at')
+            ->withTimestamps();
+    }
+
+    public function completedMovies()
+    {
+        return $this->belongsToMany(Movie::class, 'completed_movies')
+            ->withPivot('completed_at')
+            ->withTimestamps();
+    }
 }

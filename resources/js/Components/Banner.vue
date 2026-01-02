@@ -8,9 +8,32 @@ const style = ref('success');
 const message = ref('');
 
 watchEffect(async () => {
-    style.value = page.props.jetstream.flash?.bannerStyle || 'success';
-    message.value = page.props.jetstream.flash?.banner || '';
-    show.value = true;
+    // Check for Jetstream flash messages first
+    if (page.props.jetstream?.flash?.banner) {
+        style.value = page.props.jetstream.flash.bannerStyle || 'success';
+        message.value = page.props.jetstream.flash.banner;
+        show.value = true;
+        return;
+    }
+    
+    // Check for regular flash messages
+    if (page.props.flash?.error) {
+        style.value = 'danger';
+        message.value = page.props.flash.error;
+        show.value = true;
+        return;
+    }
+    
+    if (page.props.flash?.success) {
+        style.value = 'success';
+        message.value = page.props.flash.success;
+        show.value = true;
+        return;
+    }
+    
+    // No message to show
+    show.value = false;
+    message.value = '';
 });
 </script>
 

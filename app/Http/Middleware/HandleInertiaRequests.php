@@ -35,11 +35,24 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        if (auth()->check()) {
+        $shared = [];
+        
+        if ($request->user()) {
             $request->user()->load('favorites');
+            
+            // Share unresolved manual import count
+            $shared['unresolvedManualImportsCount'] = \App\Models\ManualImportFlag::where('resolved', false)->count();
         }
-        return array_merge(parent::share($request), [
-            //
-        ]);
+
+        // Share Plex server info for building URLs
+        try {
+            $plexService = app(\App\Contracts\PlexServiceContract::class);
+            $shared['plexServerInfo'] = $plexService->getServerInfo();
+        } catch (\Exception $e) {
+            // Fail silently if Plex is not configured
+            $shared['plexServerInfo'] = null;
+        }
+        
+        return array_merge(parent::share($request), $shared);
     }
 }

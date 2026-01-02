@@ -2,15 +2,16 @@
 
 namespace App\Jobs;
 
+use App\Contracts\TraktTvServiceContract;
 use App\Models\Episode;
 use App\Models\Show;
 use App\Models\User;
+use App\Jobs\SyncShowMetadataJob;
+use App\Services\DTOs\Trakt\EpisodeDTO as TraktEpisodeDTO;
+use App\Services\DTOs\Trakt\ShowDTO as TraktShowDTO;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class SyncTraktTvShowsAndProgressJob implements ShouldQueue
 {
@@ -26,17 +27,17 @@ class SyncTraktTvShowsAndProgressJob implements ShouldQueue
         //
     }
 
-    protected function findShow($show)
+    protected function findShow(TraktShowDTO $show)
     {
         $showIds = [
-            'trakt_id' => $show['ids']['trakt'],
-            'imdb_id' => $show['ids']['imdb'],
-            'tvdb_id' => $show['ids']['tvdb'],
-            'tmdb_id' => $show['ids']['tmdb'],
-            'slug' => $show['ids']['slug'],
+            'trakt_id' => $show->ids['trakt'] ?? $show->id,
+            'imdb_id' => $show->ids['imdb'] ?? null,
+            'tvdb_id' => $show->ids['tvdb'] ?? null,
+            'tmdb_id' => $show->ids['tmdb'] ?? null,
+            'slug' => $show->ids['slug'] ?? null,
         ];
 
-        if (in_array($showIds['trakt_id'], [168837])) {
+        if (in_array((int) ($showIds['trakt_id'] ?? 0), [168837], true)) {
             return null;
         }
 
@@ -50,11 +51,11 @@ class SyncTraktTvShowsAndProgressJob implements ShouldQueue
         }
 
         $localShow = new Show();
-        $localShow->name = $show['name'];
+        $localShow->name = $show->name;
         foreach ($showIds as $attribute => $value) {
             $localShow->{$attribute} = $value;
         }
-        $localShow->release_year = $show['release_year'];
+        $localShow->release_year = $show->releaseYear;
         $localShow->save();
 
         return $localShow;
@@ -62,19 +63,20 @@ class SyncTraktTvShowsAndProgressJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(): void
+    public function handle(TraktTvServiceContract $traktTvService): void
     {
-        $series = app(\App\Services\TraktTvService::class)->findWatchedShows();
+        $series = $traktTvService->findWatchedShows();
 
+        /** @var TraktShowDTO $show */
         foreach ($series as $show) {
             $localShow = $this->findShow($show);
             $attributes = [
-                'name' => $show['name'],
-                'trakt_id' => $show['ids']['trakt'],
-                'tvdb_id' => $show['ids']['tvdb'],
-                'imdb_id' => $show['ids']['imdb'],
-                'tmdb_id' => $show['ids']['tmdb'],
-                'slug' => $show['ids']['slug'],
+                'name' => $show->name,
+                'trakt_id' => $show->ids['trakt'] ?? $show->id,
+                'tvdb_id' => $show->ids['tvdb'] ?? null,
+                'imdb_id' => $show->ids['imdb'] ?? null,
+                'tmdb_id' => $show->ids['tmdb'] ?? null,
+                'slug' => $show->ids['slug'] ?? null,
             ];
 
             if (empty($localShow)) {
@@ -82,7 +84,7 @@ class SyncTraktTvShowsAndProgressJob implements ShouldQueue
             }
 
             $localShow->last_watched_at = max(
-                array_map(fn ($episode) => Carbon::parse($episode['watched_at'], 'UTC'), $show['episodes'])
+                array_map(fn (TraktEpisodeDTO $episode) => Carbon::parse($episode->watchedAt, 'UTC'), $show->episodes)
             );
 
             foreach ($attributes as $attribute => $value) {
@@ -95,17 +97,22 @@ class SyncTraktTvShowsAndProgressJob implements ShouldQueue
                 $localShow->save();
             }
 
+            if (!empty($localShow->tmdb_id) || !empty($localShow->trakt_id)) {
+                dispatch(new SyncShowMetadataJob((int) $localShow->id));
+            }
+
             $watchedEpisodeCount = 0;
             // Now we need to match the episodes from the show, with the localShow.
-            foreach ($show['episodes'] as $episode) {
+            /** @var TraktEpisodeDTO $episode */
+            foreach ($show->episodes as $episode) {
                 $localSeason = $localShow->seasons()
-                    ->firstOrCreate(['season' => $episode['season']], [
-                        'name' => 'Season ' . $episode['season'],
+                    ->firstOrCreate(['season' => $episode->season], [
+                        'name' => 'Season ' . $episode->season,
                     ]);
 
                 $localEpisode = $localSeason
                     ->episodes()
-                    ->firstWhere('episode_number', $episode['number']);
+                    ->firstWhere('episode_number', $episode->number);
 
                 if (empty($localEpisode)) {
                     continue;
@@ -122,7 +129,7 @@ class SyncTraktTvShowsAndProgressJob implements ShouldQueue
                     ->attach(
                         $localEpisode->id,
                         [
-                            'watched_at' => Carbon::parse($episode['watched_at']),
+                            'watched_at' => Carbon::parse($episode->watchedAt),
                             'season_id' => $localSeason->id
                         ]
                     );
