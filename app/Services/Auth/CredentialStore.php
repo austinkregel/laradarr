@@ -1,20 +1,20 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services\Auth;
 
 use App\Contracts\CredentialStoreContract;
 use App\Models\Credential;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
 class CredentialStore implements CredentialStoreContract
 {
-    public function get(string $service, string $key): ?string
+    public function get(string $service, string $key, ?int $userId = null): ?string
     {
         /** @var Credential|null $cred */
-        $cred = Credential::query()
-            ->where('service', $service)
-            ->where('key', $key)
+        $cred = $this->buildQuery($service, $key, $userId)
             ->where('is_enabled', true)
             ->first();
 
@@ -37,10 +37,15 @@ class CredentialStore implements CredentialStoreContract
         string $key,
         ?string $value,
         bool $enabled = true,
-        ?Carbon $expiresAt = null
+        ?Carbon $expiresAt = null,
+        ?int $userId = null
     ): Credential {
         return Credential::query()->updateOrCreate(
-            ['service' => $service, 'key' => $key],
+            [
+                'service' => $service,
+                'key' => $key,
+                'user_id' => $userId,
+            ],
             [
                 'value' => $value,
                 'is_enabled' => $enabled,
@@ -49,20 +54,39 @@ class CredentialStore implements CredentialStoreContract
         );
     }
 
-    public function enable(string $service, string $key): void
+    public function enable(string $service, string $key, ?int $userId = null): void
     {
-        Credential::query()
-            ->where('service', $service)
-            ->where('key', $key)
-            ->update(['is_enabled' => true]);
+        $this->buildQuery($service, $key, $userId)->update(['is_enabled' => true]);
     }
 
-    public function disable(string $service, string $key): void
+    public function disable(string $service, string $key, ?int $userId = null): void
     {
-        Credential::query()
+        $this->buildQuery($service, $key, $userId)->update(['is_enabled' => false]);
+    }
+
+    public function delete(string $service, string $key, ?int $userId = null): void
+    {
+        $this->buildQuery($service, $key, $userId)->delete();
+    }
+
+    /**
+     * Build a query filtered by service, key, and user_id.
+     *
+     * @return Builder<Credential>
+     */
+    private function buildQuery(string $service, string $key, ?int $userId): Builder
+    {
+        $query = Credential::query()
             ->where('service', $service)
-            ->where('key', $key)
-            ->update(['is_enabled' => false]);
+            ->where('key', $key);
+
+        if ($userId !== null) {
+            $query->where('user_id', $userId);
+        } else {
+            $query->whereNull('user_id');
+        }
+
+        return $query;
     }
 }
 

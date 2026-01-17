@@ -49,6 +49,7 @@ const followUpPollInterval = ref(null);
 const echoChannel = ref(null);
 const echoSubscribed = ref(false);
 const page = usePage();
+const isAdmin = computed(() => (page.props.auth?.user?.role ?? 'default') === 'admin');
 
 const magnetForm = useForm({
   title: '',
@@ -566,7 +567,7 @@ const triggerSearch = () => {
 
     <!-- Actions section -->
     <div class="px-4 py-3 bg-gray-50 dark:bg-gray-900/30 border-t border-gray-200 dark:border-gray-700">
-      <div class="flex flex-wrap gap-2">
+      <div v-if="isAdmin" class="flex flex-wrap gap-2">
         <button
           class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           type="button"
@@ -630,7 +631,7 @@ const triggerSearch = () => {
     </div>
   </div>
 
-  <DialogModal :show="showMagnetModal" @close="closeMagnetModal">
+  <DialogModal v-if="isAdmin" :show="showMagnetModal" @close="closeMagnetModal">
     <template #title>
       Submit Magnet or Torrent
     </template>

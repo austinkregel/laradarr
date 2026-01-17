@@ -65,7 +65,8 @@ const triggerMissingSearch = () => {
   });
 };
 
-const user = usePage().props.auth.user;
+const page = usePage();
+const isAdmin = computed(() => (page.props.auth?.user?.role ?? 'default') === 'admin');
 </script>
 
 <template>
@@ -121,6 +122,7 @@ const user = usePage().props.auth.user;
                           Open in Sonarr
                         </a>
                         <button
+                          v-if="isAdmin"
                           class="rounded-lg py-2 px-4 bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring focus:ring-indigo-500 disabled:opacity-50"
                           type="button"
                           :disabled="showSearchForm.processing || !show.sonarr_id"

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Contracts\CredentialStoreContract;
+use App\Contracts\DiscoveryRecommendationServiceContract;
 use App\Contracts\LidarrServiceContract;
 use App\Contracts\MagnetParserContract;
 use App\Contracts\MediaTaggingServiceContract;
@@ -20,6 +21,7 @@ use App\Contracts\TraktTvServiceContract;
 use App\Contracts\TmdbServiceContract;
 use App\Services\Auth\CredentialStore;
 use App\Services\Auth\TokenManager;
+use App\Services\DiscoveryRecommendationService;
 use App\Services\LidarrService;
 use App\Services\MagnetParser;
 use App\Services\MediaTaggingService;
@@ -53,6 +55,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(PlexServiceContract::class, PlexService::class);
         $this->app->singleton(TmdbServiceContract::class, TmdbService::class);
         $this->app->singleton(RecommendationServiceContract::class, RecommendationService::class);
+        $this->app->singleton(DiscoveryRecommendationServiceContract::class, DiscoveryRecommendationService::class);
         $this->app->singleton(ShowClassificationServiceContract::class, ShowClassificationService::class);
         $this->app->singleton(MovieClassificationServiceContract::class, MovieClassificationService::class);
         $this->app->singleton(MediaTaggingServiceContract::class, MediaTaggingService::class);

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
@@ -39,9 +41,13 @@ class HandleInertiaRequests extends Middleware
         
         if ($request->user()) {
             $request->user()->load('favorites');
+            $request->user()->setAttribute('role', $request->user()->role ?? 'default');
             
             // Share unresolved manual import count
             $shared['unresolvedManualImportsCount'] = \App\Models\ManualImportFlag::where('resolved', false)->count();
+            
+            // Share Trakt connection status
+            $shared['traktConnected'] = $request->user()->hasTraktConnected();
         }
 
         // Share Plex server info for building URLs

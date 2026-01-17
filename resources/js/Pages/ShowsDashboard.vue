@@ -70,7 +70,7 @@ const { shows, recently_watched, filters, show_recommendations } = defineProps({
                 <div class="mb-2">
                   <div class="flex items-center justify-between px-4">
                     <h3 class="text-2xl font-semibold text-gray-800 dark:text-gray-200 leading-tight">Shows</h3>
-                    <Link href="/discover" class="text-sm text-gray-600 dark:text-gray-300 hover:underline">Discover</Link>
+                    <Link href="/browse/shows" class="text-sm text-gray-600 dark:text-gray-300 hover:underline">Browse</Link>
                   </div>
                 </div>
 

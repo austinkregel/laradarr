@@ -1,6 +1,6 @@
 <script setup>
-import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import ApplicationMark from '@/Components/ApplicationMark.vue';
 import Banner from '@/Components/Banner.vue';
 import Dropdown from '@/Components/Dropdown.vue';
@@ -13,6 +13,9 @@ defineProps({
 });
 
 const showingNavigationDropdown = ref(false);
+
+const page = usePage();
+const isAdmin = computed(() => (page.props.auth?.user?.role ?? 'default') === 'admin');
 
 const switchToTeam = (team) => {
     router.put(route('current-team.update'), {
@@ -69,7 +72,12 @@ const logout = () => {
                                     </template>
                                 </Dropdown>
 
-                                <NavLink :href="route('manual-imports.index')" :active="route().current('manual-imports.index')" class="relative">
+                                <NavLink
+                                    v-if="isAdmin"
+                                    :href="route('manual-imports.index')"
+                                    :active="route().current('manual-imports.index')"
+                                    class="relative"
+                                >
                                     Manual Imports
                                     <span
                                         v-if="$page.props.unresolvedManualImportsCount > 0"
@@ -110,7 +118,28 @@ const logout = () => {
                                             <button
                                                 type="button"
                                                 class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-700 active:bg-gray-50 dark:active:bg-gray-700 transition ease-in-out duration-150"
-                                                :class="{ 'text-gray-700 dark:text-gray-300': route().current('discover') || route().current('movies.index') }"
+                                                :class="{ 'text-gray-700 dark:text-gray-300': route().current('browse.shows') || route().current('browse.movies') }"
+                                            >
+                                                Browse
+                                                <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    </template>
+                                    <template #content>
+                                        <DropdownLink :href="route('browse.shows')">Browse Shows</DropdownLink>
+                                        <DropdownLink :href="route('browse.movies')">Browse Movies</DropdownLink>
+                                    </template>
+                                </Dropdown>
+
+                                <Dropdown align="left" width="48" class="my-4">
+                                    <template #trigger>
+                                        <span class="inline-flex rounded-md">
+                                            <button
+                                                type="button"
+                                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none focus:bg-gray-50 dark:focus:bg-gray-700 active:bg-gray-50 dark:active:bg-gray-700 transition ease-in-out duration-150"
+                                                :class="{ 'text-gray-700 dark:text-gray-300': route().current('discover') || route().current('discover.shows') || route().current('discover.movies') }"
                                             >
                                                 Discover
                                                 <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -120,8 +149,8 @@ const logout = () => {
                                         </span>
                                     </template>
                                     <template #content>
-                                        <DropdownLink :href="route('discover')">Discover Shows</DropdownLink>
-                                        <DropdownLink :href="route('movies.index')">Discover Movies</DropdownLink>
+                                        <DropdownLink :href="route('discover.shows')">Discover Shows</DropdownLink>
+                                        <DropdownLink :href="route('discover.movies')">Discover Movies</DropdownLink>
                                     </template>
                                 </Dropdown>
                             </div>
@@ -219,7 +248,7 @@ const logout = () => {
                                             API Tokens
                                         </DropdownLink>
 
-                                        <DropdownLink :href="route('credentials.index')">
+                                        <DropdownLink v-if="isAdmin" :href="route('credentials.index')">
                                             Credentials
                                         </DropdownLink>
 
@@ -280,7 +309,12 @@ const logout = () => {
 
                         <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
 
-                        <ResponsiveNavLink :href="route('manual-imports.index')" :active="route().current('manual-imports.index')" class="relative">
+                        <ResponsiveNavLink
+                            v-if="isAdmin"
+                            :href="route('manual-imports.index')"
+                            :active="route().current('manual-imports.index')"
+                            class="relative"
+                        >
                             Manual Imports
                             <span
                                 v-if="$page.props.unresolvedManualImportsCount > 0"
@@ -307,12 +341,24 @@ const logout = () => {
                         </ResponsiveNavLink>
 
                         <div class="px-4 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                            Browse
+                        </div>
+                        <ResponsiveNavLink :href="route('browse.shows')" :active="route().current('browse.shows')" class="relative">
+                            Browse Shows
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('browse.movies')" :active="route().current('browse.movies')" class="relative">
+                            Browse Movies
+                        </ResponsiveNavLink>
+
+                        <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+
+                        <div class="px-4 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                             Discover
                         </div>
-                        <ResponsiveNavLink :href="route('discover')" :active="route().current('discover')" class="relative">
+                        <ResponsiveNavLink :href="route('discover.shows')" :active="route().current('discover') || route().current('discover.shows')" class="relative">
                             Discover Shows
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('movies.index')" :active="route().current('movies.index')" class="relative">
+                        <ResponsiveNavLink :href="route('discover.movies')" :active="route().current('discover.movies')" class="relative">
                             Discover Movies
                         </ResponsiveNavLink>
                     </div>
@@ -343,7 +389,7 @@ const logout = () => {
                                 API Tokens
                             </ResponsiveNavLink>
 
-                            <ResponsiveNavLink :href="route('credentials.index')" :active="route().current('credentials.index')">
+                            <ResponsiveNavLink v-if="isAdmin" :href="route('credentials.index')" :active="route().current('credentials.index')">
                                 Credentials
                             </ResponsiveNavLink>
 

@@ -67,7 +67,8 @@ const triggerMissingSearch = () => {
   });
 };
 
-const user = usePage().props.auth.user;
+const page = usePage();
+const isAdmin = computed(() => (page.props.auth?.user?.role ?? 'default') === 'admin');
 </script>
 
 <template>
@@ -118,11 +119,12 @@ const user = usePage().props.auth.user;
                           <FilmIcon class="w-6 h-6" />
                           Open on Trakt
                         </a>
-                        <a v-if="movie.radarr_id" class="rounded-lg py-2 px-4 text-gray-700 dark:text-gray-200 flex items-center gap-2" target="_blank" :href="'https://radarr.kregel.host/movie/'+movie.slug">
+                        <a v-if="isAdmin && movie.radarr_id" class="rounded-lg py-2 px-4 text-gray-700 dark:text-gray-200 flex items-center gap-2" target="_blank" :href="'https://radarr.kregel.host/movie/'+movie.slug">
                           <img src="https://radarr.kregel.host/Content/Images/logo.svg" class="w-6 h-6" />
                           Open in Radarr
                         </a>
                         <button
+                          v-if="isAdmin"
                           class="rounded-lg py-2 px-4 bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring focus:ring-indigo-500 disabled:opacity-50"
                           type="button"
                           :disabled="movieSearchForm.processing || !movie.radarr_id || movie.is_available"

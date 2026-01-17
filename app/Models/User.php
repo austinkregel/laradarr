@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -31,6 +33,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -93,5 +96,32 @@ class User extends Authenticatable
         return $this->belongsToMany(Movie::class, 'completed_movies')
             ->withPivot('completed_at')
             ->withTimestamps();
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isDefault(): bool
+    {
+        return $this->role === 'default';
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Credential>
+     */
+    public function credentials()
+    {
+        return $this->hasMany(Credential::class);
+    }
+
+    public function hasTraktConnected(): bool
+    {
+        return Credential::where('service', 'trakt')
+            ->where('key', 'access_token')
+            ->where('user_id', $this->id)
+            ->where('is_enabled', true)
+            ->exists();
     }
 }

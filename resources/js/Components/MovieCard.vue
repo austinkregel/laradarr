@@ -32,8 +32,8 @@ const props = defineProps({
   },
   variant: {
     type: String,
-    default: 'dashboard', // 'dashboard' or 'discover'
-    validator: (value) => ['dashboard', 'discover'].includes(value),
+    default: 'dashboard', // 'dashboard', 'browse', or 'discover'
+    validator: (value) => ['dashboard', 'browse', 'discover'].includes(value),
   },
 });
 
@@ -65,22 +65,34 @@ const isWatched = (movie) => {
     </div>
     <div class="bg-gray-950">
       <img
+        v-if="movie.poster_image"
         :src="movie.poster_image?.replace('poster.jpg', 'poster-500.jpg') ?? movie.poster_image"
         :alt="movie.name"
-        :class="variant === 'discover' ? 'h-64 w-full object-cover' : 'max-h-64 object-cover mx-auto'"
+        :class="variant === 'discover' || variant === 'browse' ? 'h-64 w-full object-cover' : 'max-h-64 object-cover mx-auto'"
       />
+      <div
+        v-else
+        :class="variant === 'discover' || variant === 'browse'
+          ? 'h-64 w-full flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'
+          : 'h-64 flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'"
+      >
+        <div class="px-3 text-center">
+          <div class="text-sm font-semibold text-gray-100 line-clamp-2">{{ movie.name }}</div>
+          <div v-if="movie.release_year" class="mt-1 text-[10px] text-gray-300">{{ movie.release_year }}</div>
+        </div>
+      </div>
     </div>
-    <div :class="variant === 'discover' ? 'p-3' : ''">
+    <div :class="variant === 'discover' || variant === 'browse' ? 'p-3' : ''">
       <Link
         :href="`/movies/${movie.id}`"
-        :class="variant === 'discover' 
+        :class="variant === 'discover' || variant === 'browse' 
           ? 'block text-sm font-semibold text-gray-950 dark:text-gray-100 leading-tight truncate'
           : 'block text-lg font-semibold text-gray-950 dark:text-gray-200 leading-tight px-4 py-2 truncate'"
       >
         {{ movie.name }}
       </Link>
       <div
-        :class="variant === 'discover'
+        :class="variant === 'discover' || variant === 'browse'
           ? 'mt-1 text-xs text-gray-600 dark:text-gray-300'
           : 'text-sm text-white px-4'"
       >
@@ -89,26 +101,26 @@ const isWatched = (movie) => {
         </div>
         <div
           v-if="movie.release_year"
-          :class="variant === 'discover'
+          :class="variant === 'discover' || variant === 'browse'
             ? 'mt-0.5 text-[10px] text-gray-500 dark:text-gray-400'
             : 'text-xs text-gray-400 mt-0.5'"
         >
           {{ movie.release_year }}
         </div>
       </div>
-      <div :class="variant === 'discover' ? 'mt-2 flex flex-wrap gap-1' : 'px-4 mt-2 flex flex-wrap gap-1'">
+      <div :class="variant === 'discover' || variant === 'browse' ? 'mt-2 flex flex-wrap gap-1' : 'px-4 mt-2 flex flex-wrap gap-1'">
         <span
           v-for="cat in (movie.categories ?? []).slice(0, 3)"
           :key="cat.id"
-          :class="variant === 'discover'
+          :class="variant === 'discover' || variant === 'browse'
             ? 'text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-200'
             : 'text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white'"
         >
           {{ cat.name }}
         </span>
         <span
-          v-if="(showCategoryCount || variant === 'discover') && (movie.categories ?? []).length > 3"
-          :class="variant === 'discover'
+          v-if="(showCategoryCount || variant === 'discover' || variant === 'browse') && (movie.categories ?? []).length > 3"
+          :class="variant === 'discover' || variant === 'browse'
             ? 'text-[10px] px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-200'
             : 'text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white'"
         >
@@ -116,13 +128,13 @@ const isWatched = (movie) => {
         </span>
       </div>
       <div
-        :class="variant === 'discover' ? 'mt-2 flex flex-wrap gap-1' : 'px-4 mt-2 flex flex-wrap gap-1'"
+        :class="variant === 'discover' || variant === 'browse' ? 'mt-2 flex flex-wrap gap-1' : 'px-4 mt-2 flex flex-wrap gap-1'"
         v-if="(movie.content_warnings ?? movie.contentWarnings ?? []).length"
       >
         <span
           v-for="w in (movie.content_warnings ?? movie.contentWarnings ?? []).slice(0, 2)"
           :key="w.id"
-          :class="variant === 'discover'
+          :class="variant === 'discover' || variant === 'browse'
             ? 'text-[10px] px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200'
             : 'text-[10px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-200'"
         >
@@ -131,12 +143,12 @@ const isWatched = (movie) => {
       </div>
       <div
         v-if="(movie.genres ?? []).length > 0"
-        :class="variant === 'discover' ? 'mt-2 flex flex-wrap gap-1' : 'px-4 mt-2 flex flex-wrap gap-1'"
+        :class="variant === 'discover' || variant === 'browse' ? 'mt-2 flex flex-wrap gap-1' : 'px-4 mt-2 flex flex-wrap gap-1'"
       >
         <span
           v-for="genre in (movie.genres ?? []).slice(0, 2)"
           :key="genre"
-          :class="variant === 'discover'
+          :class="variant === 'discover' || variant === 'browse'
             ? 'text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200'
             : 'text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-200'"
         >
@@ -144,7 +156,7 @@ const isWatched = (movie) => {
         </span>
       </div>
       <div
-        :class="variant === 'discover'
+        :class="variant === 'discover' || variant === 'browse'
           ? 'mt-2 flex items-center justify-between text-[10px] text-gray-600 dark:text-gray-300'
           : 'px-4 mt-2 text-[11px] text-gray-300 flex items-center justify-between'"
       >
@@ -162,7 +174,7 @@ const isWatched = (movie) => {
       </div>
       <div
         v-if="showWatchedInfo"
-        :class="variant === 'discover' ? 'text-sm text-white p-3 pt-2' : 'text-sm text-white px-4 pb-4'"
+        :class="variant === 'discover' || variant === 'browse' ? 'text-sm text-white p-3 pt-2' : 'text-sm text-white px-4 pb-4'"
       >
         {{ lastWatched(movie) }}<span v-if="isWatched(movie)"> · Watched</span>
       </div>

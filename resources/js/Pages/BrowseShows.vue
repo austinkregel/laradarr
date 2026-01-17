@@ -1,11 +1,11 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { Link } from '@inertiajs/vue3'
-import MovieFilters from '@/Components/MovieFilters.vue'
-import MovieCard from '@/Components/MovieCard.vue'
+import ShowFilters from '@/Components/ShowFilters.vue'
+import ShowCard from '@/Components/ShowCard.vue'
 
 const props = defineProps({
-  movies: {
+  shows: {
     type: Object,
     required: true,
   },
@@ -17,13 +17,13 @@ const props = defineProps({
 </script>
 
 <template>
-  <AppLayout title="Discover Movies">
+  <AppLayout title="Browse Shows">
     <template #header>
       <div class="flex items-center justify-between">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-          Discover Movies
+          Browse Shows
         </h2>
-        <Link href="/dashboard/movies" class="text-sm text-gray-600 dark:text-gray-300 hover:underline">Back to Movies Dashboard</Link>
+        <Link href="/dashboard/shows" class="text-sm text-gray-600 dark:text-gray-300 hover:underline">Back to Shows Dashboard</Link>
       </div>
     </template>
 
@@ -31,17 +31,17 @@ const props = defineProps({
       <div class="sm:px-6 lg:px-8">
         <div class="my-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
           <aside class="lg:col-span-4 xl:col-span-3">
-            <MovieFilters :filters="filters" basePath="/movies" />
+            <ShowFilters :filters="filters" basePath="/browse/shows" />
           </aside>
 
           <main class="lg:col-span-8 xl:col-span-9">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-              <MovieCard
-                v-for="movie in movies.data"
-                :key="movie.id"
-                :movie="movie"
-                redirect="/movies"
-                variant="discover"
+              <ShowCard
+                v-for="show in shows.data"
+                :key="show.id"
+                :show="show"
+                redirect="/browse/shows"
+                variant="browse"
                 :show-category-count="true"
               />
             </div>
@@ -49,7 +49,7 @@ const props = defineProps({
         </div>
 
         <div class="mt-8 flex items-center justify-center">
-          <div v-for="link in movies.links" :key="link.url ?? link.label">
+          <div v-for="link in shows.links" :key="link.url ?? link.label">
             <Link
               :href="link.url"
               class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 leading-5 rounded-md focus:outline-none transition ease-in-out duration-150"

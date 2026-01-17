@@ -15,19 +15,8 @@ fi
 
 chmod -R ugo+rw /.composer
 
-# Fix storage directory permissions for Laravel
-if [ -d /var/www/html/storage ]; then
-    chown -R sail:sail /var/www/html/storage
-    chmod -R 775 /var/www/html/storage
-    # Ensure logs directory exists and is writable
-    mkdir -p /var/www/html/storage/logs
-    chown -R sail:sail /var/www/html/storage/logs
-    chmod -R 775 /var/www/html/storage/logs
-    # Ensure framework directories are writable
-    mkdir -p /var/www/html/storage/framework/{cache,sessions,views,testing}
-    chown -R sail:sail /var/www/html/storage/framework
-    chmod -R 775 /var/www/html/storage/framework
-fi
+php artisan optimize:clear
+php artisan optimize
 
 if [ $# -gt 0 ]; then
     if [ "$SUPERVISOR_PHP_USER" = "root" ]; then

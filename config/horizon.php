@@ -193,6 +193,7 @@ return [
     | - 'metadata' (SyncShowMetadataJob, SyncAllShowsMetadataJob)
     | - 'default' (jobs without explicit queue, FollowUpEpisodeSearchJob, etc.)
     | - 'qbittorrent-monitor' (MonitorQBittorrentDownloadsJob)
+    | - 'discovery-sync' (SyncDiscoverableShowsJob, SyncDiscoverableMoviesJob)
     |
     */
 
@@ -249,6 +250,19 @@ return [
             'timeout' => 120,
             'nice' => 0,
         ],
+        'supervisor-5' => [
+            'connection' => 'redis',
+            'queue' => ['discovery-sync'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 1,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 256,
+            'tries' => 1,
+            'timeout' => 6000,
+            'nice' => 0,
+        ],
     ],
 
     'environments' => [
@@ -257,6 +271,10 @@ return [
                 'maxProcesses' => 10,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
+            ],
+            'supervisor-5' => [
+                'queue' => ['discovery-sync'],
+                'maxProcesses' => 2,
             ],
         ],
 
@@ -276,7 +294,11 @@ return [
             'supervisor-4' => [
                 'queue' => ['qbittorrent-monitor'],
                 'maxProcesses' => 1
-            ]
+            ],
+            'supervisor-5' => [
+                'queue' => ['discovery-sync'],
+                'maxProcesses' => 1,
+            ],
         ],
     ],
 ];

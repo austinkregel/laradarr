@@ -12,5 +12,17 @@ interface TmdbServiceContract
     public function getMovieDetails(int $tmdbId): array;
 
     public function getMovieExternalIds(int $tmdbId): array;
+
+    public function discoverTvShows(array $params = []): array;
+
+    public function discoverMovies(array $params = []): array;
+
+    public function getTrendingTvShows(string $timeWindow = 'week', array $params = []): array;
+
+    public function getTrendingMovies(string $timeWindow = 'week', array $params = []): array;
+
+    public function getTvGenres(array $params = []): array;
+
+    public function getMovieGenres(array $params = []): array;
 }
 

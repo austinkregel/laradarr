@@ -17,9 +17,7 @@ window.axios.defaults.withCredentials = true;
 const getCsrfToken = () => {
     const meta = document.querySelector('meta[name="csrf-token"]');
     return meta ? meta.getAttribute('content') : null;
-};
-
-// Configure Laravel Echo (only if Reverb is configured)
+};// Configure Laravel Echo (only if Reverb is configured)
 if (import.meta.env.VITE_REVERB_APP_KEY) {
     window.Pusher = Pusher;
 

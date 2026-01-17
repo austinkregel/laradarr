@@ -36,9 +36,9 @@ const entryData = (entry) => entry[props.entryKey];
 </script>
 
 <template>
-  <section class="bg-white/80 dark:bg-gray-900/80 shadow rounded-lg py-6 px-6">
-    <header class="flex items-center justify-between mb-4">
-      <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ title }}</h3>
+  <section class="bg-white/80 dark:bg-gray-900/80 shadow rounded-lg">
+    <header class="flex items-center justify-between my-6 mx-4">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 ">{{ title }}</h3>
       <Link
         v-if="viewAllHref"
         :href="viewAllHref"

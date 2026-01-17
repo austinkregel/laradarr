@@ -124,7 +124,7 @@ class MovieController extends Controller
                 ->values();
         }
 
-        return Inertia::render('Movies', [
+        return Inertia::render('BrowseMovies', [
             'movies' => $movies,
             'filters' => [
                 'categories' => Category::query()

@@ -6,11 +6,13 @@ use App\Models\Category;
 use App\Models\ContentWarning;
 use App\Models\Media;
 use App\Http\Controllers\CredentialController;
+use App\Http\Controllers\DiscoveryController;
 use App\Http\Controllers\ManualImportController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\RadarrController;
 use App\Http\Controllers\RecommendationController;
 use App\Http\Controllers\SonarrController;
+use App\Http\Controllers\TraktAuthController;
 use App\Services\RecommendationService;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
@@ -43,6 +45,12 @@ Route::middleware([
     Route::get('/manual-imports', [ManualImportController::class, 'index'])->name('manual-imports.index');
     Route::post('/manual-imports/{flag}/resolve', [ManualImportController::class, 'markResolved'])->name('manual-imports.resolve');
     Route::post('/manual-imports/{flag}/trigger-sonarr-import', [ManualImportController::class, 'triggerSonarrImport'])->name('manual-imports.trigger-sonarr-import');
+
+    // Trakt OAuth authentication routes
+    Route::get('/trakt/status', [TraktAuthController::class, 'status'])->name('trakt.status');
+    Route::post('/trakt/device', [TraktAuthController::class, 'startDevice'])->name('trakt.device');
+    Route::post('/trakt/poll', [TraktAuthController::class, 'poll'])->name('trakt.poll');
+    Route::delete('/trakt/disconnect', [TraktAuthController::class, 'disconnect'])->name('trakt.disconnect');
 
     Route::get('/dashboard', function () {
         // Redirect to shows dashboard by default
@@ -328,7 +336,11 @@ Route::middleware([
     Route::get('/recommendations/movies', [RecommendationController::class, 'movies'])
         ->name('recommendations.movies');
 
-    Route::get('/discover', function () {
+    Route::get('/discover', [DiscoveryController::class, 'index'])->name('discover');
+    Route::get('/discover/shows', [DiscoveryController::class, 'shows'])->name('discover.shows');
+    Route::get('/discover/movies', [DiscoveryController::class, 'movies'])->name('discover.movies');
+
+    Route::get('/browse/shows', function () {
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
@@ -454,7 +466,7 @@ Route::middleware([
                 ->values();
         }
 
-        return Inertia::render('Discover', [
+        return Inertia::render('BrowseShows', [
             'shows' => $shows,
             'filters' => [
                 'categories' => Category::query()
@@ -471,7 +483,7 @@ Route::middleware([
                 'rating_sources' => ['imdb', 'tmdb', 'trakt', 'community'],
             ],
         ]);
-    })->name('discover');
+    })->name('browse.shows');
 
     Route::get('/watched-shows', function () {
         /** @var \App\Models\User $user */
@@ -560,7 +572,7 @@ Route::middleware([
     Route::get('/radarr/commands/{commandId}', [RadarrController::class, 'getCommandStatus'])
         ->name('radarr.commands.status');
 
-    Route::get('/movies', [MovieController::class, 'index'])->name('movies.index');
+    Route::get('/browse/movies', [MovieController::class, 'index'])->name('browse.movies');
     Route::get('/movies/{movie}', [MovieController::class, 'show'])->name('movie');
 
     Route::get('/shows/{show}', function (\App\Models\Show $show) {

@@ -65,7 +65,14 @@ class SyncTraktTvShowsAndProgressJob implements ShouldQueue
      */
     public function handle(TraktTvServiceContract $traktTvService): void
     {
-        $series = $traktTvService->findWatchedShows();
+        // Check if user has Trakt connected
+        if (!$this->user->hasTraktConnected()) {
+            return;
+        }
+
+        // Create a user-scoped service to use the user's own Trakt tokens
+        $userTraktService = $traktTvService->forUser($this->user->id);
+        $series = $userTraktService->findWatchedShows();
 
         /** @var TraktShowDTO $show */
         foreach ($series as $show) {

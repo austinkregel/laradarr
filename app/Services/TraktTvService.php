@@ -1,17 +1,40 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Contracts\TokenManagerContract;
 use App\Contracts\TraktTvServiceContract;
 use App\Exceptions\Integration\AuthenticationException;
 use App\Services\DTOs\Trakt\ShowDTO;
+use Illuminate\Support\Collection;
 
 class TraktTvService extends BaseApiClient implements TraktTvServiceContract
 {
+    private ?int $userId = null;
+
     public function __construct(
-        private readonly \App\Contracts\TokenManagerContract $tokenManager,
+        private readonly TokenManagerContract $tokenManager,
     ) {}
+
+    /**
+     * Create a user-scoped instance of the service.
+     */
+    public function forUser(int $userId): static
+    {
+        $instance = new static($this->tokenManager);
+        $instance->userId = $userId;
+        return $instance;
+    }
+
+    /**
+     * Get the current user ID this service is scoped to (null = global).
+     */
+    public function getUserId(): ?int
+    {
+        return $this->userId;
+    }
 
     protected function serviceKey(): string
     {
@@ -34,7 +57,7 @@ class TraktTvService extends BaseApiClient implements TraktTvServiceContract
 
     private function authHeaders(): array
     {
-        $token = $this->tokenManager->getTraktAccessToken();
+        $token = $this->tokenManager->getTraktAccessToken($this->userId);
         return $token ? ['Authorization' => 'Bearer ' . $token] : [];
     }
 
@@ -61,25 +84,73 @@ class TraktTvService extends BaseApiClient implements TraktTvServiceContract
             'client_secret' => config('services.trakt.client_secret'),
         ]);
 
-        // Persist in cache for runtime use.
-        $this->tokenManager->storeTraktTokens($json);
+        // Persist in cache for runtime use (scoped to user if set).
+        $this->tokenManager->storeTraktTokens($json, $this->userId);
 
         return $json;
     }
 
     public function refreshAccessToken(): array
     {
-        return $this->tokenManager->refreshTraktTokens();
+        return $this->tokenManager->refreshTraktTokens($this->userId);
     }
 
-    /** @return \Illuminate\Support\Collection<int, ShowDTO> */
-    public function findWatchedShows(): \Illuminate\Support\Collection
+    /** @return Collection<int, ShowDTO> */
+    public function findWatchedShows(): Collection
     {
         $json = $this->requestJsonAuthed('GET', '/sync/watched/shows');
         return collect($json)
             ->filter(fn ($row) => is_array($row) && isset($row['show']))
             ->map(fn (array $row) => ShowDTO::fromWatchedArray($row))
             ->values();
+    }
+
+    public function getTrendingShows(int $limit = 100): array
+    {
+        $limit = max(1, min(500, $limit));
+
+        return cache()->remember("trakt-shows-trending-$limit", now()->addMinutes(30), function () use ($limit) {
+            return $this->requestJson('GET', '/shows/trending', query: [
+                'limit' => $limit,
+                'extended' => 'full',
+            ]);
+        });
+    }
+
+    public function getPopularShows(int $limit = 100): array
+    {
+        $limit = max(1, min(500, $limit));
+
+        return cache()->remember("trakt-shows-popular-$limit", now()->addMinutes(30), function () use ($limit) {
+            return $this->requestJson('GET', '/shows/popular', query: [
+                'limit' => $limit,
+                'extended' => 'full',
+            ]);
+        });
+    }
+
+    public function getTrendingMovies(int $limit = 100): array
+    {
+        $limit = max(1, min(500, $limit));
+
+        return cache()->remember("trakt-movies-trending-$limit", now()->addMinutes(30), function () use ($limit) {
+            return $this->requestJson('GET', '/movies/trending', query: [
+                'limit' => $limit,
+                'extended' => 'full',
+            ]);
+        });
+    }
+
+    public function getPopularMovies(int $limit = 100): array
+    {
+        $limit = max(1, min(500, $limit));
+
+        return cache()->remember("trakt-movies-popular-$limit", now()->addMinutes(30), function () use ($limit) {
+            return $this->requestJson('GET', '/movies/popular', query: [
+                'limit' => $limit,
+                'extended' => 'full',
+            ]);
+        });
     }
 
     public function findShowsOnList(string $user, string $list): array
@@ -135,7 +206,7 @@ class TraktTvService extends BaseApiClient implements TraktTvServiceContract
             return $this->requestJson($method, $path, query: $query, body: $body, headers: $this->authHeaders());
         } catch (AuthenticationException $e) {
             // Refresh once and retry.
-            $this->tokenManager->refreshTraktTokens();
+            $this->tokenManager->refreshTraktTokens($this->userId);
             return $this->requestJson($method, $path, query: $query, body: $body, headers: $this->authHeaders());
         }
     }

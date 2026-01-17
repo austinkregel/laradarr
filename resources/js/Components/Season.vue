@@ -2,7 +2,7 @@
 import { Disclosure, DisclosureButton, DisclosurePanel} from '@headlessui/vue';
 import {computed, ref} from "vue";
 import { ArrowRightIcon,ChevronRightIcon } from "@heroicons/vue/24/solid";
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import Episode from "@/Components/Episode.vue";
 import DialogModal from "@/Components/DialogModal.vue";
 import InputError from "@/Components/InputError.vue";
@@ -28,6 +28,9 @@ const searchError = ref('');
 const showMagnetModal = ref(false);
 const magnetMessage = ref('');
 const magnetError = ref('');
+
+const page = usePage();
+const isAdmin = computed(() => (page.props.auth?.user?.role ?? 'default') === 'admin');
 
 const magnetForm = useForm({
   title: '',
@@ -162,7 +165,7 @@ const triggerSeasonSearch = async () => {
         <div :class="seasonWatched ? 'bg-green-800 text-white' : 'text-gray-500 dark:text-gray-400 bg-gray-600'"  class="text-xs mx-4 p-2 rounded-lg ">{{ season.episodes.length }} episodes</div>
         <div :class="seasonWatched ? 'bg-green-800 text-white' : 'text-gray-500 dark:text-gray-400 bg-gray-600'" class="text-xs mx-4 p-2 rounded-lg ">{{ episodesWatched }} watched</div>
         <button
-          v-if="hasEpisodesWithSonarrId"
+          v-if="isAdmin && hasEpisodesWithSonarrId"
           @click.stop="triggerSeasonSearch"
           :disabled="searchProcessing"
           class="text-xs px-3 py-1 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -178,7 +181,7 @@ const triggerSeasonSearch = async () => {
           </span>
         </button>
         <button
-          v-if="hasShowWithSonarrId"
+          v-if="isAdmin && hasShowWithSonarrId"
           @click.stop="openMagnetModal"
           :disabled="magnetForm.processing"
           class="text-xs px-3 py-1 rounded-lg bg-purple-600 text-white hover:bg-purple-700 focus:outline-none focus:ring focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -217,7 +220,7 @@ const triggerSeasonSearch = async () => {
   </DisclosurePanel>
 </Disclosure>
 
-  <DialogModal :show="showMagnetModal" @close="closeMagnetModal">
+  <DialogModal v-if="isAdmin" :show="showMagnetModal" @close="closeMagnetModal">
     <template #title>
       Submit Season Magnet or Torrent
     </template>
